@@ -1,12 +1,12 @@
 <launch>
     <arg name="UAV_NAME" default="$(optenv UAV_NAME)" />
-    <arg name="map_frame" default="$(arg UAV_NAME)/map_origin" />
-    <arg name="map_size_x" value="26" />
-    <arg name="map_size_y" value="20" />
-    <arg name="map_size_z" value="3" />
+    <arg name="map_frame" default="$(arg UAV_NAME)/world_origin" />
+    <arg name="map_size_x" value="40" />
+    <arg name="map_size_y" value="40" />
+    <arg name="map_size_z" value="4" />
     <arg name="map_resolution" value="0.1"/>
-    <arg name="map_obs_num" value="100"/>
-    <arg name="map_circle_num" value="100"/>
+    <arg name="map_obs_num" value="300"/>
+    <arg name="map_circle_num" value="0"/>
 
     <arg name="ObstacleShape_seed" value="1"/>
     <arg name="ObstacleShape_lower_rad" value="0.5"/>
@@ -47,8 +47,4 @@
         <param name="pub_rate" value="$(arg rate_map_pub)"/>
         <param name="min_distance" value="$(arg min_dist)"/>
     </node>
-
-    <arg name="tf_x" value="$(eval map_size_x / 2.0)"/>
-    <arg name="tf_y" value="$(eval map_size_y / 2.0)"/>
-    <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_local_origin" args="$(arg tf_x) $(arg tf_y) 0 0 0 0 1 $(arg UAV_NAME)/local_origin $(arg map_frame)" />
 </launch>
