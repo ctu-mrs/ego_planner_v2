@@ -5,7 +5,7 @@
     <arg name="map_size_y" default="40" />
     <arg name="map_size_z" default="4" />
     <arg name="map_resolution" value="0.1"/>
-    <arg name="map_obs_num" value="300"/>
+    <arg name="map_obs_num" value="350"/>
     <arg name="map_circle_num" value="0"/>
 
     <arg name="ObstacleShape_seed" value="1"/>
