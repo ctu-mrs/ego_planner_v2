@@ -72,6 +72,7 @@ nav_msgs::Odometry _odom;
 
 double sensing_horizon, sensing_rate, estimation_rate; 
 double _x_size, _y_size, _z_size;
+string _frame_id;
 double _gl_xl, _gl_yl, _gl_zl;
 double _resolution, _inv_resolution;
 int _GLX_SIZE, _GLY_SIZE, _GLZ_SIZE;
@@ -148,7 +149,7 @@ void pubCameraPose(const ros::TimerEvent & event)
   //cout<<"pub cam pose"
   geometry_msgs::PoseStamped camera_pose;
   camera_pose.header = _odom.header;
-  camera_pose.header.frame_id = "simulator_origin";
+  camera_pose.header.frame_id = _frame_id;
   camera_pose.pose.position.x = cam2world(0,3);
   camera_pose.pose.position.y = cam2world(1,3);
   camera_pose.pose.position.z = cam2world(2,3);
@@ -262,7 +263,7 @@ void render_pcl_world()
   localMap.is_dense = true;
 
   pcl::toROSMsg(localMap, local_map_pcl);
-  local_map_pcl.header.frame_id  = "simulator_origin";
+  local_map_pcl.header.frame_id  = _frame_id;
   local_map_pcl.header.stamp     = last_odom_stamp;
 
   pub_pcl_wolrd.publish(local_map_pcl);
@@ -336,6 +337,7 @@ int main(int argc, char **argv)
   nh.getParam("map/x_size",     _x_size);
   nh.getParam("map/y_size",     _y_size);
   nh.getParam("map/z_size",     _z_size);
+  nh.getParam("frame_id",       _frame_id);
 
   depthrender.set_para(fx, fy, cx, cy, width, height);
 

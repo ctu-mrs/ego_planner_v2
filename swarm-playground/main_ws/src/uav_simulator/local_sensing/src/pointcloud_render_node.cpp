@@ -35,6 +35,7 @@ nav_msgs::Odometry _odom;
 
 double sensing_horizon, sensing_rate, estimation_rate;
 double _x_size, _y_size, _z_size;
+string _frame_id;
 double _gl_xl, _gl_yl, _gl_zl;
 double _resolution, _inv_resolution;
 int _GLX_SIZE, _GLY_SIZE, _GLZ_SIZE;
@@ -146,7 +147,7 @@ void renderSensedPoints(const ros::TimerEvent& event) {
   _local_map.is_dense = true;
 
   pcl::toROSMsg(_local_map, _local_map_pcd);
-  _local_map_pcd.header.frame_id = "simulator_origin";
+  _local_map_pcd.header.frame_id = _frame_id; 
 
   pub_cloud.publish(_local_map_pcd);
 }
@@ -167,6 +168,7 @@ int main(int argc, char** argv) {
   nh.getParam("map/x_size", _x_size);
   nh.getParam("map/y_size", _y_size);
   nh.getParam("map/z_size", _z_size);
+  nh.getParam("frame_id", _frame_id);
 
   // subscribe point cloud
   global_map_sub = nh.subscribe("global_map", 1, rcvGlobalPointCloudCallBack);
