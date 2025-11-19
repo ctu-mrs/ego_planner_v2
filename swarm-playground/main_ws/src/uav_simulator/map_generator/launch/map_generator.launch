@@ -4,8 +4,8 @@
     <arg name="map_size_x" default="35" />
     <arg name="map_size_y" default="15" />
     <arg name="map_size_z" default="4" />
-    <arg name="map_resolution" value="0.2"/>
-    <arg name="map_obs_num" value="100"/>
+    <arg name="map_resolution" value="0.1"/>
+    <arg name="map_obs_num" value="150"/>
     <arg name="map_circle_num" value="0"/>
 
     <arg name="ObstacleShape_seed" value="1"/>
@@ -21,7 +21,7 @@
     <arg name="ObstacleShape_theta" value="0.5"/>
 
     <arg name="rate_map_pub" value="1.0"/>
-    <arg name="min_dist" value="0.8"/>
+    <arg name="min_dist" value="0.0"/>
 
     <node pkg ="map_generator" name ="random_forest" type ="random_forest" output = "screen">
         <param name="frame_id" value="$(arg map_frame)"/>

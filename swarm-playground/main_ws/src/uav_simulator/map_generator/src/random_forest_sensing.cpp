@@ -14,6 +14,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -41,6 +42,7 @@ vector<double> _state;
 int _obs_num;
 double _x_size, _y_size, _z_size;
 double _x_l, _x_h, _y_l, _y_h, _w_l, _w_h, _h_l, _h_h;
+double _z_l, _z_h;
 double _z_limit, _sensing_range, _resolution, _pub_rate;
 double _min_dist;
 
@@ -64,6 +66,80 @@ pcl::PointCloud<pcl::PointXYZ> clicked_cloud_;
 
 std::string _frame_id_;
 
+bool checkCollision(const Eigen::Vector3d& pos, double radius) {
+    pcl::PointXYZ searchPoint;
+    searchPoint.x = pos.x();
+    searchPoint.y = pos.y();
+    searchPoint.z = pos.z();
+
+    pointIdxRadiusSearch.clear();
+    pointRadiusSquaredDistance.clear();
+
+    if (kdtreeLocalMap.radiusSearch(searchPoint, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
+        return true;  // collision detected
+    return false;
+}
+
+double computeTraversability(int N, double R, double step_size = 0.1, double max_dist = 50.0) {
+    std::uniform_real_distribution<double> rand_x(_x_l, _x_h);
+    std::uniform_real_distribution<double> rand_y(_y_l, _y_h);
+    std::uniform_real_distribution<double> rand_z(1, 3);
+    std::uniform_real_distribution<double> rand_theta(0.0, 2.0 * M_PI);
+
+    double total_length = 0.0;
+    for (int i = 0; i < N; ++i) {
+        Eigen::Vector3d start(rand_x(eng), rand_y(eng), rand_z(eng));
+        double theta = rand_theta(eng);
+        // simulate a path from this start point
+        Eigen::Vector3d pos = start;
+        Eigen::Vector3d direction(cos(theta), sin(theta), 0.0); // flat movement
+        double travelled = 0.0;
+
+        while (travelled < max_dist) {
+            pos += direction * step_size;
+            travelled += step_size;
+            bool out_of_bounds = (pos.x() < _x_l || pos.x() > _x_h ||
+                                  pos.y() < _y_l || pos.y() > _y_h);
+
+            if (checkCollision(pos, R) || out_of_bounds) {
+                break; // stop path if collision or outside map
+            }
+        }
+          total_length += travelled;
+    }
+
+    return total_length / N; // average path length before collision
+}
+
+
+double simulatePathLength(const Eigen::Vector3d& start, double radius, double theta, double step_size = 0.1, double max_dist = 50.0) {
+    Eigen::Vector3d pos = start;
+    double travelled = 0.0;
+
+    Eigen::Vector3d direction(cos(theta), sin(theta), 0.0);
+
+    while (travelled < max_dist) {
+        pos += direction * step_size;
+        travelled += step_size;
+
+        if (checkCollision(pos, radius))
+            break;
+    }
+
+    return travelled;
+}
+
+double monteCarloTraversability(const Eigen::Vector3d& start, double radius, int num_trials = 100) {
+    double total_length = 0.0;
+    uniform_real_distribution<double> rand_theta(0.0, 2*M_PI);
+
+    for (int i = 0; i < num_trials; i++) {
+        double theta = rand_theta(eng);  // random orientation
+        total_length += simulatePathLength(start, radius, theta);
+    }
+
+    return total_length / num_trials; // average free path length
+}
 void RandomMapGenerate() {
   pcl::PointXYZ pt_random;
 
@@ -462,7 +538,8 @@ int main(int argc, char **argv) {
   // RandomMapGenerate();
   RandomMapGenerateCylinder();
   // RandomInclinedColumn();
-
+  double traversability_ = computeTraversability(3000, 0.3, 0.01, 100.0); //take sizerobot param 
+  cout << "traversability=" << traversability_ << endl;
   ros::Rate loop_rate(_pub_rate);
 
   while (ros::ok()) {
